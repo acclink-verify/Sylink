@@ -4,10 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>sylink</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sylink">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#131415">
 <style>
   :root{
     --bg:#131415; --panel:#18191b; --line:#26282b; --text:#d9d9d6; --mute:#77797c;
-    --c:#8fb4d9;
+    --c:#8fb4d9; --err:#d98f8f;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
   }
@@ -16,7 +21,8 @@
   body{background:var(--bg);color:var(--text);font:15px/1.6 var(--sans);display:flex;flex-direction:column;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased}
   header{display:flex;justify-content:space-between;align-items:center;padding:calc(18px + env(safe-area-inset-top)) 24px 0}
   .brand{font:500 13px var(--mono);letter-spacing:.14em;color:var(--mute)}
-  .link{background:none;border:0;color:var(--mute);font:12px var(--mono);letter-spacing:.08em;cursor:pointer;transition:color .2s}
+  .nav{display:flex;gap:18px}
+  .link{background:none;border:0;color:var(--mute);font:12px var(--mono);letter-spacing:.08em;cursor:pointer;transition:color .2s;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .link:hover{color:var(--text)}
   #stage{flex:0 0 46vh;position:relative;transition:flex-basis .8s cubic-bezier(.2,.7,.2,1)}
   body.chatting #stage{flex-basis:20vh}
@@ -58,24 +64,34 @@
   .ic:hover{color:var(--text);background:#202224}
   .ic.on{color:var(--c)}
   .ic svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
   dialog{margin:auto;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:24px;width:min(420px,90vw)}
   dialog::backdrop{background:rgba(0,0,0,.6)}
   dialog h2{font:500 13px var(--mono);letter-spacing:.1em;margin-bottom:16px;color:var(--mute)}
   dialog label{display:block;font:11px var(--mono);letter-spacing:.08em;color:var(--mute);margin:12px 0 5px}
-  dialog input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--text);font:13px var(--mono);outline:0}
-  dialog input:focus{border-color:var(--mute)}
-  dialog .row{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+  dialog input,dialog select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--text);font:13px var(--mono);outline:0;appearance:none;-webkit-appearance:none}
+  dialog input:focus,dialog select:focus{border-color:var(--mute)}
+  dialog .row{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;flex-wrap:wrap}
   dialog .row button{font:12px var(--mono);padding:7px 14px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);cursor:pointer}
   dialog .row .go{background:var(--text);color:var(--bg);border-color:var(--text)}
+  dialog .row .danger{color:var(--err);border-color:#4a2f2f}
+  dialog .row .danger.solid{background:var(--err);color:var(--bg);border-color:var(--err)}
   dialog small{display:block;margin-top:14px;color:var(--mute);font-size:12px;line-height:1.5}
-  dialog small.err{color:#d98f8f}
+  dialog small.err{color:var(--err)}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font:13px var(--mono)}
+  .kv span:first-child{color:var(--mute)}
+  .hide{display:none!important}
+  .ask{width:100%;font:13px var(--sans);color:var(--text);margin-top:20px}
 </style>
 </head>
 <body>
 
 <header>
   <span class="brand">SYLINK</span>
-  <button class="link" id="open-cfg">api</button>
+  <div class="nav">
+    <button class="link" id="open-acc">cuenta</button>
+    <button class="link" id="open-cfg">api</button>
+  </div>
 </header>
 
 <section id="stage">
@@ -102,26 +118,155 @@
   <input type="file" id="file" accept="image/*" multiple hidden>
 </footer>
 
+<!-- CUENTA -->
+<dialog id="accDlg">
+  <h2>CUENTA</h2>
+  <div id="accOut">
+    <label>CORREO O NÚMERO DE CELULAR</label>
+    <input id="accId" placeholder="tu@correo.com o +52 55 1234 5678" autocomplete="username" inputmode="email">
+    <small id="accMsg">Sin código de verificación. Se guarda solo en este dispositivo.</small>
+    <div class="row">
+      <button id="acc-skip">Ahora no</button>
+      <button class="go" id="acc-in">Entrar</button>
+    </div>
+  </div>
+  <div id="accIn" class="hide">
+    <div class="kv"><span>sesión</span><span id="accShow"></span></div>
+    <small>Tu key y tu configuración quedan guardadas bajo esta cuenta en este dispositivo.</small>
+    <div class="row">
+      <button id="acc-close">Cerrar</button>
+      <button class="danger" id="acc-out">Cerrar sesión</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- API -->
 <dialog id="cfg">
   <h2>CONEXIÓN</h2>
-  <label>API KEY (OPENAI)</label>
-  <input id="key" type="password" placeholder="sk-..." autocomplete="off">
-  <label>MODELO</label>
-  <input id="model" value="gpt-4o-mini">
-  <small id="msg">Se guarda solo en este navegador.</small>
-  <div class="row">
-    <button id="cfg-cancel">Cerrar</button>
-    <button class="go" id="cfg-save">Guardar</button>
+
+  <div id="setView">
+    <label>PROVEEDOR</label>
+    <select id="prov"></select>
+    <div id="baseWrap" class="hide">
+      <label>URL BASE (COMPATIBLE CON OPENAI)</label>
+      <input id="base" placeholder="http://localhost:11434/v1" autocomplete="off">
+    </div>
+    <label id="keyLabel">API KEY</label>
+    <input id="key" type="password" placeholder="Pega tu key" autocomplete="off">
+    <label>MODELO</label>
+    <input id="model" autocomplete="off">
+    <small id="msg">Se guarda en tu dispositivo y no te la vuelve a pedir.</small>
+    <div class="row">
+      <button id="cfg-cancel">Cerrar</button>
+      <button class="go" id="cfg-save">Guardar</button>
+    </div>
+  </div>
+
+  <div id="savedView" class="hide">
+    <div class="kv"><span>proveedor</span><span id="svProv"></span></div>
+    <div class="kv"><span>key</span><span id="svKey"></span></div>
+    <label>MODELO</label>
+    <input id="svModel" autocomplete="off">
+    <small id="svMsg">Guardada en este dispositivo.</small>
+    <div class="row" id="rowNormal">
+      <button id="sv-close">Cerrar</button>
+      <button class="danger" id="sv-del">Delete key</button>
+    </div>
+    <div id="rowAsk" class="hide">
+      <p class="ask">¿Seguro que quieres eliminar la key?</p>
+      <div class="row">
+        <button id="ask-no">Cancelar</button>
+        <button class="danger solid" id="ask-yes">Sí, eliminar</button>
+      </div>
+    </div>
   </div>
 </dialog>
 
 <script>
-(() => {
+(async () => {
   const $ = s => document.querySelector(s);
-  const store = {
-    get: k => { try { return localStorage.getItem(k) } catch { return null } },
-    set: (k, v) => { try { localStorage.setItem(k, v) } catch {} }
+
+  /* ---------- Icono ---------- */
+  (() => {
+    const S = 512, c = document.createElement('canvas');
+    c.width = c.height = S;
+    const g = c.getContext('2d');
+    g.fillStyle = '#131415'; g.fillRect(0, 0, S, S);
+    const n = 90, p = [], ca = Math.cos(.6), sa = Math.sin(.6), ct = Math.cos(.35), st = Math.sin(.35);
+    for (let i = 0; i < n; i++) {
+      const y = 1 - 2 * (i + .5) / n, r = Math.sqrt(1 - y * y), th = i * 2.399963;
+      const x = Math.cos(th) * r, z = Math.sin(th) * r;
+      const x1 = x * ca + z * sa, z1 = -x * sa + z * ca;
+      p.push([x1, y * ct - z1 * st, y * st + z1 * ct]);
+    }
+    const R = S * .3, X = a => S / 2 + a[0] * R, Y = a => S / 2 + a[1] * R;
+    g.lineWidth = 2.2;
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      if (Math.hypot(p[i][0]-p[j][0], p[i][1]-p[j][1], p[i][2]-p[j][2]) < .52) {
+        const d = ((p[i][2] + p[j][2]) / 2 + 1) / 2;
+        g.strokeStyle = `hsla(205,50%,70%,${.1 + .5 * d})`;
+        g.beginPath(); g.moveTo(X(p[i]), Y(p[i])); g.lineTo(X(p[j]), Y(p[j])); g.stroke();
+      }
+    }
+    p.forEach(a => {
+      const d = (a[2] + 1) / 2;
+      g.fillStyle = `hsla(205,55%,78%,${.3 + .7 * d})`;
+      g.beginPath(); g.arc(X(a), Y(a), 2 + 3.5 * d, 0, 6.283); g.fill();
+    });
+    const url = c.toDataURL('image/png');
+    [['apple-touch-icon', '180x180'], ['icon', '512x512']].forEach(([rel, sizes]) => {
+      const l = document.createElement('link');
+      l.rel = rel; l.sizes = sizes; l.href = url;
+      document.head.appendChild(l);
+    });
+  })();
+
+  /* ---------- Almacenamiento persistente (localStorage + IndexedDB) ---------- */
+  const idb = new Promise(res => {
+    try {
+      const q = indexedDB.open('sylink', 1);
+      q.onupgradeneeded = () => q.result.createObjectStore('kv');
+      q.onsuccess = () => res(q.result);
+      q.onerror = () => res(null);
+    } catch { res(null); }
+  });
+  const idbOp = async (mode, fn) => {
+    const d = await idb; if (!d) return null;
+    return new Promise(res => {
+      try {
+        const st = d.transaction('kv', mode).objectStore('kv'), r = fn(st);
+        r.onsuccess = () => res(r.result); r.onerror = () => res(null);
+      } catch { res(null); }
+    });
   };
+  const kv = {
+    async get(k) {
+      let v = null; try { v = localStorage.getItem(k); } catch {}
+      if (v == null) { v = await idbOp('readonly', s => s.get(k)); if (v != null) { try { localStorage.setItem(k, v); } catch {} } }
+      return v;
+    },
+    async set(k, v) { try { localStorage.setItem(k, v); } catch {} await idbOp('readwrite', s => s.put(v, k)); },
+    async del(k) { try { localStorage.removeItem(k); } catch {} await idbOp('readwrite', s => s.delete(k)); }
+  };
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
+
+  /* ---------- Proveedores ---------- */
+  const PROV = {
+    openai:     { n: 'OpenAI (ChatGPT)',    t: 'oai', base: 'https://api.openai.com/v1',                     model: 'gpt-4o-mini' },
+    anthropic:  { n: 'Anthropic (Claude)',  t: 'ant', base: 'https://api.anthropic.com/v1',                  model: 'claude-sonnet-5-5' },
+    gemini:     { n: 'Google Gemini',       t: 'gem', base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.5-flash' },
+    groq:       { n: 'Groq',                t: 'oai', base: 'https://api.groq.com/openai/v1',                model: 'meta-llama/llama-4-scout-17b-16e-instruct' },
+    openrouter: { n: 'OpenRouter',          t: 'oai', base: 'https://openrouter.ai/api/v1',                  model: 'meta-llama/llama-3.3-70b-instruct:free' },
+    deepseek:   { n: 'DeepSeek',            t: 'oai', base: 'https://api.deepseek.com/v1',                   model: 'deepseek-chat' },
+    mistral:    { n: 'Mistral',             t: 'oai', base: 'https://api.mistral.ai/v1',                     model: 'mistral-small-latest' },
+    xai:        { n: 'xAI (Grok)',          t: 'oai', base: 'https://api.x.ai/v1',                           model: 'grok-3-mini' },
+    custom:     { n: 'Otra / local (Ollama)', t: 'oai', base: 'http://localhost:11434/v1',                   model: 'llama3.2', nokey: true }
+  };
+  const provSel = $('#prov');
+  Object.entries(PROV).forEach(([id, p]) => provSel.add(new Option(p.n, id)));
+  const detect = k =>
+    /^sk-ant-/.test(k) ? 'anthropic' : /^AIza/.test(k) ? 'gemini' : /^gsk_/.test(k) ? 'groq' :
+    /^sk-or-/.test(k) ? 'openrouter' : /^xai-/.test(k) ? 'xai' : /^sk-/.test(k) ? 'openai' : null;
 
   /* ---------- ORB ---------- */
   const cv = $('#orb'), ctx = cv.getContext('2d');
@@ -145,7 +290,6 @@
   new ResizeObserver(fit).observe(cv);
   const angDiff = (a, b) => ((b - a + 540) % 360) - 180;
   let frame = 0;
-
   function draw(ts) {
     const t = ts / 1000, dt = Math.min(.05, t - last); last = t;
     const eT = { idle: .03, listening: .10, thinking: .06, speaking: .09 }[state];
@@ -154,7 +298,6 @@
     ang += sp * dt;
     if (t > nextShift) { target = hue + 50 + Math.random() * 100; nextShift = t + 9 + Math.random() * 7; }
     hue += angDiff(hue, target) * dt * .5; hue = (hue + 360) % 360;
-
     ctx.clearRect(0, 0, W, H);
     const R = Math.min(W, H) * .36, cx = W / 2, cy = H / 2;
     const ca = Math.cos(ang), sa = Math.sin(ang), cx2 = Math.cos(.35), sx2 = Math.sin(.35);
@@ -250,7 +393,7 @@
     col.appendChild(el); scroll();
   }
 
-  /* ---------- Images ---------- */
+  /* ---------- Imágenes ---------- */
   let pending = [];
   function drawChips() {
     const c = $('#chips'); c.innerHTML = '';
@@ -282,7 +425,7 @@
     e.target.value = ''; drawChips();
   };
 
-  /* ---------- Voice ---------- */
+  /* ---------- Voz ---------- */
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   let rec = null, listening = false, viaVoice = false;
   if (!SR) $('#mic').style.display = 'none';
@@ -310,48 +453,176 @@
     speechSynthesis.speak(u);
   }
 
-  /* ---------- Config ---------- */
+  /* ---------- Cuenta (local, sin código de verificación) ---------- */
+  const accDlg = $('#accDlg');
+  let ACC = null; // { id, type }
+  const normId = v => {
+    v = v.trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return { id: v.toLowerCase(), type: 'email' };
+    const d = v.replace(/[^\d+]/g, '');
+    if (d.replace(/\D/g, '').length >= 7) return { id: d, type: 'phone' };
+    return null;
+  };
+  const cfgKey = () => 'sy:cfg:' + (ACC ? ACC.id : 'guest');
+  function paintAcc() {
+    $('#open-acc').textContent = ACC ? ACC.id : 'cuenta';
+    $('#accOut').classList.toggle('hide', !!ACC);
+    $('#accIn').classList.toggle('hide', !ACC);
+    $('#accShow').textContent = ACC ? ACC.id : '';
+  }
+  $('#open-acc').onclick = () => { paintAcc(); accDlg.showModal(); };
+  $('#acc-close').onclick = () => accDlg.close();
+  $('#acc-skip').onclick = async () => { await kv.set('sy:skip', '1'); accDlg.close(); };
+  $('#acc-in').onclick = async () => {
+    const n = normId($('#accId').value), m = $('#accMsg');
+    if (!n) { m.className = 'err'; m.textContent = 'Escribe un correo válido o un número de celular.'; return; }
+    ACC = n; m.className = ''; await kv.set('sy:account', JSON.stringify(n));
+    $('#accId').value = ''; accDlg.close(); paintAcc(); await loadCfg();
+  };
+  $('#accId').addEventListener('keydown', e => { if (e.key === 'Enter') $('#acc-in').click(); });
+  $('#acc-out').onclick = async () => {
+    await kv.del('sy:account'); ACC = null; accDlg.close(); paintAcc(); await loadCfg();
+  };
+
+  /* ---------- Configuración de API ---------- */
   const dlg = $('#cfg');
-  let KEY = store.get('sy_oai_key') || '';
-  let MODEL = store.get('sy_oai_model') || 'gpt-4o-mini';
-  $('#key').value = KEY;
-  $('#model').value = MODEL;
-  $('#open-cfg').onclick = () => dlg.showModal();
+  let CFG = null; // { provider, key, model, base }
+  const mask = k => !k ? '(sin key)' : k.length <= 8 ? '••••' : k.slice(0, 4) + '••••' + k.slice(-4);
+
+  function fillSet(id) {
+    const p = PROV[id];
+    provSel.value = id;
+    $('#model').value = p.model;
+    $('#baseWrap').classList.toggle('hide', id !== 'custom');
+    if (id === 'custom') $('#base').value = p.base;
+    $('#keyLabel').textContent = p.nokey ? 'API KEY (OPCIONAL)' : 'API KEY';
+  }
+  provSel.onchange = () => fillSet(provSel.value);
+  $('#key').addEventListener('input', e => { const d = detect(e.target.value.trim()); if (d && d !== provSel.value) fillSet(d); });
+
+  function showCfg() {
+    $('#rowAsk').classList.add('hide'); $('#rowNormal').classList.remove('hide');
+    if (CFG) {
+      $('#setView').classList.add('hide'); $('#savedView').classList.remove('hide');
+      $('#svProv').textContent = PROV[CFG.provider].n;
+      $('#svKey').textContent = mask(CFG.key);
+      $('#svModel').value = CFG.model;
+      $('#svMsg').className = ''; $('#svMsg').textContent = 'Guardada en este dispositivo.';
+    } else {
+      $('#savedView').classList.add('hide'); $('#setView').classList.remove('hide');
+      $('#key').value = ''; fillSet(provSel.value || 'openai');
+      $('#msg').className = ''; $('#msg').textContent = 'Se guarda en tu dispositivo y no te la vuelve a pedir.';
+    }
+  }
+  async function loadCfg() {
+    let c = null;
+    try { c = JSON.parse(await kv.get(cfgKey())); } catch {}
+    CFG = c && PROV[c.provider] ? c : null;
+    showCfg();
+  }
+  $('#open-cfg').onclick = () => { showCfg(); dlg.showModal(); };
   $('#cfg-cancel').onclick = () => dlg.close();
+  $('#sv-close').onclick = () => dlg.close();
+
+  async function ping(id, key, base) {
+    const t = PROV[id].t;
+    let r;
+    if (t === 'ant') r = await fetch(base + '/models', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' } });
+    else if (t === 'gem') r = await fetch(base + '/models?key=' + encodeURIComponent(key));
+    else r = await fetch(base + '/models', { headers: key ? { authorization: 'Bearer ' + key } : {} });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 401 || r.status === 403 || r.status === 400) throw new Error('Error: API key no válida.');
+      throw new Error('Error: ' + (j.error?.message || r.status));
+    }
+  }
   $('#cfg-save').onclick = async () => {
-    const k = $('#key').value.trim(), m = $('#model').value.trim() || 'gpt-4o-mini', msg = $('#msg');
+    const id = provSel.value, p = PROV[id], key = $('#key').value.trim(), msg = $('#msg');
+    const model = $('#model').value.trim() || p.model;
+    const base = (id === 'custom' ? $('#base').value.trim() : p.base).replace(/\/+$/, '');
     msg.className = '';
-    if (!k) { msg.className = 'err'; msg.textContent = 'Pega tu API key.'; return; }
+    if (!key && !p.nokey) { msg.className = 'err'; msg.textContent = 'Pega tu API key.'; return; }
+    if (!base) { msg.className = 'err'; msg.textContent = 'Escribe la URL base.'; return; }
     msg.textContent = 'Verificando...';
     try {
-      const r = await fetch('https://api.openai.com/v1/models', { headers: { authorization: 'Bearer ' + k } });
-      if (!r.ok) {
-        const j = await r.json().catch(() => ({}));
-        throw new Error(r.status === 401 ? 'Error: API key no válida.' : 'Error: ' + (j.error?.message || r.status));
-      }
-      KEY = k; MODEL = m;
-      store.set('sy_oai_key', k); store.set('sy_oai_model', m);
-      msg.textContent = 'Se guarda solo en este navegador.';
-      dlg.close();
+      await ping(id, key, base);
+      CFG = { provider: id, key, model, base };
+      await kv.set(cfgKey(), JSON.stringify(CFG));
+      showCfg(); dlg.close();
     } catch (e) {
       msg.className = 'err';
-      msg.textContent = e.message === 'Failed to fetch' ? 'Error: sin conexión.' : e.message;
+      msg.textContent = e.message === 'Failed to fetch' ? 'Error: sin conexión o el servidor bloqueó la petición.' : e.message;
     }
   };
+  $('#svModel').addEventListener('change', async e => {
+    if (!CFG) return;
+    CFG.model = e.target.value.trim() || PROV[CFG.provider].model;
+    await kv.set(cfgKey(), JSON.stringify(CFG));
+    $('#svMsg').textContent = 'Modelo actualizado.';
+  });
+  $('#sv-del').onclick = () => { $('#rowNormal').classList.add('hide'); $('#rowAsk').classList.remove('hide'); };
+  $('#ask-no').onclick = () => { $('#rowAsk').classList.add('hide'); $('#rowNormal').classList.remove('hide'); };
+  $('#ask-yes').onclick = async () => { await kv.del(cfgKey()); CFG = null; showCfg(); };
 
   /* ---------- Chat ---------- */
   const SYSTEM = `Eres Sylink, una IA minimalista. Responde en el idioma del usuario, de forma breve y directa, sin emojis.
 Cuando entregues código, ponlo SIEMPRE en bloques con la etiqueta del lenguaje correcta (\`\`\`python, \`\`\`html, \`\`\`js...).
 Si piden una imagen, ilustración, logo o ícono, genérala como SVG completo y válido (con viewBox) dentro de un bloque \`\`\`svg.
 Si el usuario envía una imagen, analízala con atención.`;
-  const history = []; let busy = false;
+  const history = []; // { role:'user'|'assistant', text, imgs:[dataURL] }
+  let busy = false;
+  const b64 = u => u.split(',')[1];
+
+  async function callModel(c) {
+    const t = PROV[c.provider].t;
+    if (t === 'ant') {
+      const messages = history.map(h => ({
+        role: h.role,
+        content: h.role === 'user'
+          ? [...h.imgs.map(u => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64(u) } })), { type: 'text', text: h.text }]
+          : h.text
+      }));
+      const r = await fetch(c.base + '/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: c.model, max_tokens: 4096, system: SYSTEM, messages })
+      });
+      const j = await r.json(); if (!r.ok) throw new Error(j.error?.message || r.status);
+      return j.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    }
+    if (t === 'gem') {
+      const contents = history.map(h => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.text }, ...h.imgs.map(u => ({ inline_data: { mime_type: 'image/jpeg', data: b64(u) } }))]
+      }));
+      const r = await fetch(`${c.base}/models/${encodeURIComponent(c.model)}:generateContent?key=${encodeURIComponent(c.key)}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: SYSTEM }] }, contents })
+      });
+      const j = await r.json(); if (!r.ok) throw new Error(j.error?.message || r.status);
+      return (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('') || 'Sin respuesta.';
+    }
+    const messages = [{ role: 'system', content: SYSTEM }, ...history.map(h => ({
+      role: h.role,
+      content: h.role === 'user' && h.imgs.length
+        ? [{ type: 'text', text: h.text }, ...h.imgs.map(u => ({ type: 'image_url', image_url: { url: u } }))]
+        : h.text
+    }))];
+    const r = await fetch(c.base + '/chat/completions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...(c.key ? { authorization: 'Bearer ' + c.key } : {}) },
+      body: JSON.stringify({ model: c.model, messages })
+    });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error?.message || r.status);
+    return j.choices[0].message.content || '';
+  }
 
   async function send() {
     if (busy) return;
     const text = input.value.trim();
     if (!text && !pending.length) return;
-    const key = KEY;
-    if (!key) { dlg.showModal(); viaVoice = false; return; }
+    if (!CFG) { viaVoice = false; showCfg(); dlg.showModal(); return; }
     speechSynthesis.cancel(); if (listening) rec.stop();
 
     document.body.classList.add('chatting');
@@ -359,9 +630,7 @@ Si el usuario envía una imagen, analízala con atención.`;
     input.value = ''; grow();
     renderUser(text, imgs);
 
-    const content = [{ type: 'text', text: text || 'Describe esta imagen.' }];
-    imgs.forEach(i => content.push({ type: 'image_url', image_url: { url: i.url } }));
-    history.push({ role: 'user', content });
+    history.push({ role: 'user', text: text || 'Describe esta imagen.', imgs: imgs.map(i => i.url) });
 
     busy = true; state = 'thinking';
     const wait = document.createElement('div'); wait.className = 'msg';
@@ -369,18 +638,8 @@ Si el usuario envía una imagen, analízala con atención.`;
     col.appendChild(wait); scroll();
 
     try {
-      const r = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + key },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [{ role: 'system', content: SYSTEM }, ...history]
-        })
-      });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error?.message || r.status);
-      const out = j.choices[0].message.content || '';
-      history.push({ role: 'assistant', content: out });
+      const out = await callModel(CFG);
+      history.push({ role: 'assistant', text: out, imgs: [] });
       wait.remove(); renderAssistant(out);
       state = 'idle';
       if (viaVoice) speak(out);
@@ -396,6 +655,12 @@ Si el usuario envía una imagen, analízala con atención.`;
   input.addEventListener('input', grow);
   input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
   $('#send').onclick = send;
+
+  /* ---------- Inicio ---------- */
+  try { const a = JSON.parse(await kv.get('sy:account')); if (a && a.id) ACC = a; } catch {}
+  paintAcc();
+  await loadCfg();
+  if (!ACC && !(await kv.get('sy:skip'))) accDlg.showModal();
 })();
 </script>
 </body>
