@@ -1,1150 +1,402 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#090a0e">
-<title>Sylink AI</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>sylink</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-:root {
-  --bg:#090a0e;
-  --panel:#171921;
-  --text:#f4f4f7;
-  --muted:#858b98;
-  --accent:#a58cff;
-}
-
-* {
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-}
-
-body {
-  background:var(--bg);
-  color:var(--text);
-  font-family:Inter,sans-serif;
-  min-height:100vh;
-}
-
-button,input,select,textarea {
-  font:inherit;
-}
-
-button {
-  cursor:pointer;
-}
-
-.app {
-  min-height:100dvh;
-  display:flex;
-  flex-direction:column;
-}
-
-header {
-  min-height:70px;
-  padding:0 6%;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  border-bottom:1px solid #ffffff0c;
-}
-
-.brand {
-  display:flex;
-  align-items:center;
-  gap:11px;
-  font-size:20px;
-  font-weight:700;
-  letter-spacing:-1px;
-}
-
-.brand svg {
-  width:30px;
-  color:#a99aff;
-}
-
-.header-label {
-  color:var(--muted);
-  font-size:10px;
-  letter-spacing:2px;
-}
-
-main {
-  width:100%;
-  max-width:900px;
-  margin:auto;
-  padding:30px 20px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-.intro {
-  text-align:center;
-}
-
-.intro h1 {
-  font-size:clamp(25px,5vw,35px);
-  font-weight:500;
-  letter-spacing:-1.5px;
-}
-
-.intro p {
-  margin-top:10px;
-  color:var(--muted);
-  font-size:13px;
-}
-
-/* ESFERA */
-
-.orb-container {
-  width:330px;
-  height:330px;
-  max-width:100%;
-  position:relative;
-  display:grid;
-  place-items:center;
-  margin:8px 0;
-  pointer-events:none;
-}
-
-#orb {
-  width:100%;
-  height:100%;
-  overflow:visible;
-}
-
-.orb-glow {
-  position:absolute;
-  width:220px;
-  height:220px;
-  border-radius:50%;
-  background:#9375ff;
-  filter:blur(90px);
-  opacity:.2;
-}
-
-.mesh-line {
-  stroke:url(#meshGradient);
-  stroke-width:1;
-  opacity:.6;
-}
-
-.mesh-dot {
-  fill:url(#meshGradient);
-  filter:url(#glow);
-}
-
-.mesh-outline {
-  fill:none;
-  stroke:url(#meshGradient);
-  opacity:.4;
-}
-
-.state {
-  color:#aaa2ca;
-  font-size:10px;
-  letter-spacing:2px;
-  text-align:center;
-  margin:0 0 12px;
-}
-
-/* CHAT */
-
-.chat {
-  width:min(620px,100%);
-  position:relative;
-  z-index:5;
-}
-
-.messages {
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  max-height:300px;
-  overflow-y:auto;
-  padding:5px;
-  margin-bottom:13px;
-}
-
-.message {
-  max-width:88%;
-  padding:12px 15px;
-  border-radius:14px;
-  font-size:13px;
-  line-height:1.6;
-  overflow-wrap:anywhere;
-}
-
-.message.user {
-  align-self:flex-end;
-  background:#29243e;
-}
-
-.message.ai {
-  align-self:flex-start;
-  background:#15171e;
-  border:1px solid #272a34;
-}
-
-.message img {
-  display:block;
-  width:100%;
-  max-width:230px;
-  max-height:230px;
-  object-fit:contain;
-  border-radius:10px;
-  margin-top:8px;
-}
-
-/* TEXTBOX */
-
-.input-container {
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:8px;
-  min-height:60px;
-  border:1px solid #30323d;
-  background:var(--panel);
-  border-radius:16px;
-  position:relative;
-  z-index:10;
-}
-
-.input-container:focus-within {
-  border-color:#9480d8;
-  box-shadow:0 0 20px #8f79ff15;
-}
-
-#userInput {
-  display:block;
-  flex:1;
-  width:100%;
-  min-width:0;
-  height:42px;
-  padding:0 8px;
-  border:0;
-  outline:none;
-  background:transparent;
-  color:white;
-  -webkit-text-fill-color:white;
-  caret-color:#b8a4ff;
-  font-size:14px;
-  opacity:1;
-  pointer-events:auto;
-  user-select:text;
-  -webkit-user-select:text;
-}
-
-#userInput::placeholder {
-  color:#888b98;
-  -webkit-text-fill-color:#888b98;
-  opacity:1;
-}
-
-.action {
-  flex-shrink:0;
-  width:40px;
-  height:40px;
-  border-radius:11px;
-  border:1px solid #30323d;
-  background:#222530;
-  color:white;
-  display:grid;
-  place-items:center;
-}
-
-.action svg {
-  width:18px;
-  height:18px;
-}
-
-.action.send {
-  background:#a394f5;
-  color:#101018;
-  border:0;
-}
-
-.action.recording {
-  background:#c45e70;
-}
-
-.options {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  margin-top:15px;
-}
-
-.options button {
-  border:1px solid #292b35;
-  background:transparent;
-  color:#aaa;
-  padding:9px 13px;
-  border-radius:10px;
-  font-size:12px;
-}
-
-.options button.active {
-  color:white;
-  border-color:#a394f5;
-}
-
-.hint {
-  color:#686c79;
-  font-size:10px;
-  text-align:center;
-  margin-top:15px;
-}
-
-/* SELECTOR DE VOZ */
-
-.voice-panel {
-  width:100%;
-  margin-top:16px;
-  padding:14px;
-  border:1px solid #292b35;
-  background:#11131a;
-  border-radius:13px;
-}
-
-.voice-panel label {
-  display:block;
-  color:#a8a4b8;
-  font-size:11px;
-  margin-bottom:9px;
-}
-
-#voiceSelect {
-  width:100%;
-  padding:11px;
-  color:white;
-  background:#20222c;
-  border:1px solid #353744;
-  border-radius:9px;
-  outline:none;
-}
-
-/* FOTOS */
-
-#photoInput {
-  display:none;
-}
-
-.photo-preview {
-  display:none;
-  margin:10px 0;
-  padding:10px;
-  border:1px solid #30323d;
-  border-radius:12px;
-  background:#15171e;
-}
-
-.photo-preview img {
-  max-width:100%;
-  max-height:150px;
-  display:block;
-  border-radius:9px;
-  margin-bottom:8px;
-}
-
-.photo-preview button {
-  border:0;
-  color:#ff9eaa;
-  background:transparent;
-  font-size:12px;
-}
-
-/* CREAR IMAGENES BETA */
-
-.beta-panel {
-  width:min(620px,100%);
-  margin-top:28px;
-  padding:17px;
-  border:1px solid #343044;
-  background:linear-gradient(145deg,#171521,#10131c);
-  border-radius:17px;
-}
-
-.beta-title {
-  display:flex;
-  align-items:center;
-  gap:9px;
-  margin-bottom:10px;
-  font-size:14px;
-  font-weight:600;
-}
-
-.beta-badge {
-  font-size:9px;
-  color:#d5c5ff;
-  background:#7254a9;
-  border-radius:5px;
-  padding:4px 6px;
-  letter-spacing:1px;
-}
-
-.beta-description {
-  color:var(--muted);
-  font-size:11px;
-  line-height:1.6;
-  margin-bottom:13px;
-}
-
-#imagePrompt {
-  width:100%;
-  min-height:75px;
-  resize:vertical;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #34313f;
-  background:#10121a;
-  color:white;
-  outline:none;
-  font-size:13px;
-}
-
-#imagePrompt::placeholder {
-  color:#737684;
-}
-
-.generate-button {
-  width:100%;
-  margin-top:10px;
-  padding:12px;
-  border:0;
-  border-radius:10px;
-  background:#8d78db;
-  color:white;
-  font-weight:600;
-}
-
-.beta-result {
-  display:none;
-  margin-top:12px;
-  color:#c7bddf;
-  font-size:12px;
-  line-height:1.6;
-}
-
-footer {
-  text-align:center;
-  color:#575b66;
-  font-size:10px;
-  letter-spacing:1.5px;
-  padding:20px;
-}
-
-@media(max-width:600px) {
-  header {
-    padding:0 20px;
+  :root{
+    --bg:#131415; --panel:#18191b; --line:#26282b; --text:#d9d9d6; --mute:#77797c;
+    --c:#8fb4d9;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
   }
-
-  main {
-    padding:25px 16px;
-  }
-
-  .orb-container {
-    width:290px;
-    height:290px;
-  }
-}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font:15px/1.6 var(--sans);display:flex;flex-direction:column;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased}
+  header{display:flex;justify-content:space-between;align-items:center;padding:calc(18px + env(safe-area-inset-top)) 24px 0}
+  .brand{font:500 13px var(--mono);letter-spacing:.14em;color:var(--mute)}
+  .link{background:none;border:0;color:var(--mute);font:12px var(--mono);letter-spacing:.08em;cursor:pointer;transition:color .2s}
+  .link:hover{color:var(--text)}
+  #stage{flex:0 0 46vh;position:relative;transition:flex-basis .8s cubic-bezier(.2,.7,.2,1)}
+  body.chatting #stage{flex-basis:20vh}
+  canvas{position:absolute;inset:0;width:100%;height:100%}
+  #hint{position:absolute;left:0;right:0;bottom:-18px;text-align:center;color:var(--mute);font-size:13px;pointer-events:none;transition:opacity .5s}
+  body.chatting #hint{opacity:0}
+  #log{flex:1;overflow-y:auto;padding:8px 24px 24px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .col{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+  .msg{max-width:100%;word-wrap:break-word;animation:in .4s ease both}
+  .msg.user{align-self:flex-end;max-width:85%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:9px 14px}
+  .msg p+p{margin-top:.7em}
+  .msg code.i{font:13px var(--mono);background:var(--panel);border:1px solid var(--line);padding:1px 5px;border-radius:5px}
+  .thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .thumbs img{height:64px;border-radius:8px;border:1px solid var(--line);display:block}
+  .code{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0;background:var(--panel)}
+  .bar{display:flex;justify-content:space-between;align-items:center;padding:7px 8px 7px 14px;border-bottom:1px solid var(--line)}
+  .lang{font:11px var(--mono);letter-spacing:.1em;color:var(--mute);text-transform:uppercase}
+  .copy{background:none;border:1px solid var(--line);color:var(--text);font:11px var(--mono);letter-spacing:.06em;padding:4px 10px;border-radius:7px;cursor:pointer;transition:border-color .2s,color .2s}
+  .copy:hover{border-color:var(--mute)}
+  .copy.ok{color:var(--c);border-color:var(--c)}
+  pre{padding:14px;overflow-x:auto;font:13px/1.6 var(--mono);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .preview{padding:18px;border-top:1px solid var(--line);display:flex;justify-content:center;background:#101112}
+  .preview img{max-width:100%;max-height:340px}
+  .dots{display:inline-flex;gap:4px;padding:6px 0}
+  .dots i{width:4px;height:4px;border-radius:50%;background:var(--mute);animation:b 1.1s infinite ease-in-out}
+  .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+  @keyframes b{0%,80%,100%{opacity:.25}40%{opacity:1}}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  footer{padding:8px 24px calc(18px + env(safe-area-inset-bottom))}
+  #chips{max-width:680px;margin:0 auto 8px;display:flex;gap:6px;flex-wrap:wrap}
+  #chips div{position:relative}
+  #chips img{height:48px;border-radius:8px;border:1px solid var(--line);display:block}
+  #chips button{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:11px;line-height:1;cursor:pointer}
+  .composer{max-width:680px;margin:0 auto;display:flex;align-items:flex-end;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:6px;transition:border-color .3s}
+  .composer:focus-within{border-color:color-mix(in srgb,var(--c) 55%,var(--line))}
+  textarea{flex:1;background:none;border:0;outline:0;resize:none;color:var(--text);font:15px/1.5 var(--sans);padding:8px 6px;max-height:140px;caret-color:var(--c)}
+  textarea::placeholder{color:var(--mute)}
+  .ic{width:36px;height:36px;border:0;background:none;color:var(--mute);border-radius:10px;cursor:pointer;display:grid;place-items:center;transition:color .2s,background .2s;flex:none}
+  .ic:hover{color:var(--text);background:#202224}
+  .ic.on{color:var(--c)}
+  .ic svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  dialog{margin:auto;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:24px;width:min(420px,90vw)}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  dialog h2{font:500 13px var(--mono);letter-spacing:.1em;margin-bottom:16px;color:var(--mute)}
+  dialog label{display:block;font:11px var(--mono);letter-spacing:.08em;color:var(--mute);margin:12px 0 5px}
+  dialog input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--text);font:13px var(--mono);outline:0}
+  dialog input:focus{border-color:var(--mute)}
+  dialog .row{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+  dialog .row button{font:12px var(--mono);padding:7px 14px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);cursor:pointer}
+  dialog .row .go{background:var(--text);color:var(--bg);border-color:var(--text)}
+  dialog small{display:block;margin-top:14px;color:var(--mute);font-size:12px;line-height:1.5}
+  dialog small.err{color:#d98f8f}
 </style>
 </head>
-
 <body>
-<div class="app">
 
 <header>
-  <div class="brand">
-    <svg viewBox="0 0 32 32" fill="none">
-      <path d="M16 3L28 10V22L16 29L4 22V10L16 3Z"
-        stroke="currentColor" stroke-width="1.5"/>
-      <path d="M10 20L16 10L22 20M12.5 16H19.5"
-        stroke="currentColor" stroke-width="1.5"
-        stroke-linecap="round"/>
-    </svg>
-    Sylink
-  </div>
-  <div class="header-label">PERSONAL AI</div>
+  <span class="brand">SYLINK</span>
+  <button class="link" id="open-cfg">api</button>
 </header>
 
-<main>
+<section id="stage">
+  <canvas id="orb"></canvas>
+  <div id="hint">Habla, escribe o envía una imagen.</div>
+</section>
 
-  <div class="intro">
-    <h1>¿En qué puedo ayudarte?</h1>
-    <p>Estoy aquí para escucharte.</p>
-  </div>
+<main id="log"><div class="col" id="col"></div></main>
 
-  <div class="orb-container">
-    <div class="orb-glow" id="orbGlow"></div>
-
-    <svg id="orb" viewBox="0 0 350 350">
-      <defs>
-        <linearGradient id="meshGradient"
-          x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#8B7CFF"/>
-          <stop offset="50%" stop-color="#A9A0FF"/>
-          <stop offset="100%" stop-color="#56CFFF"/>
-        </linearGradient>
-
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="1.8"/>
-        </filter>
-
-        <clipPath id="circleClip">
-          <circle cx="175" cy="175" r="153"/>
-        </clipPath>
-      </defs>
-
-      <g id="meshGroup" clip-path="url(#circleClip)"></g>
-      <circle class="mesh-outline"
-        cx="175" cy="175" r="157"/>
-    </svg>
-  </div>
-
-  <div class="state" id="state">LISTO PARA ESCUCHAR</div>
-
-  <section class="chat">
-
-    <div class="messages" id="messages"></div>
-
-    <div class="photo-preview" id="photoPreview">
-      <img id="previewImage" alt="Foto seleccionada">
-      <button id="removePhoto" type="button">Eliminar fotografía</button>
-    </div>
-
-    <input
-      type="file"
-      id="photoInput"
-      accept="image/*"
-    >
-
-    <div class="input-container">
-
-      <input
-        id="userInput"
-        type="text"
-        placeholder="Escribe un mensaje..."
-        autocomplete="off"
-        spellcheck="true"
-        aria-label="Escribe un mensaje"
-      >
-
-      <button class="action" id="photoBtn"
-        title="Subir fotografía" type="button">
-        <svg viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="1.7"
-          stroke-linecap="round">
-          <rect x="3" y="4" width="18" height="16" rx="3"/>
-          <circle cx="8.5" cy="9" r="1.5"/>
-          <path d="M21 15L16 10L5 20"/>
-        </svg>
-      </button>
-
-      <button class="action" id="micBtn"
-        title="Micrófono" type="button">
-        <svg viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="1.7"
-          stroke-linecap="round">
-          <rect x="9" y="2" width="6" height="13" rx="3"/>
-          <path d="M5 11a7 7 0 0014 0M12 18v4m-4 0h8"/>
-        </svg>
-      </button>
-
-      <button class="action send" id="sendBtn"
-        title="Enviar" type="button">
-        <svg viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 12H19M12 5L19 12L12 19"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="options">
-      <button id="stopBtn" type="button">■ Detener voz</button>
-      <button id="voiceBtn" class="active" type="button">🔊 Voz activada</button>
-    </div>
-
-    <div class="voice-panel">
-      <label for="voiceSelect">VOZ DE SYLINK</label>
-      <select id="voiceSelect">
-        <option value="auto">Voz española predeterminada</option>
-      </select>
-    </div>
-
-    <p class="hint">
-      Puedes escribir, hablar o adjuntar una fotografía.
-    </p>
-  </section>
-
-  <section class="beta-panel">
-    <div class="beta-title">
-      CREAR IMÁGENES
-      <span class="beta-badge">[BETA]</span>
-    </div>
-
-    <p class="beta-description">
-      Describe la imagen que quieres crear. Esta función está en fase beta
-      y necesita un modelo generativo compatible para producir imágenes.
-    </p>
-
-    <textarea
-      id="imagePrompt"
-      placeholder="Describe la imagen que imaginas..."
-    ></textarea>
-
-    <button class="generate-button" id="generateImage">
-      ✨ Generar imagen [BETA]
+<footer>
+  <div id="chips"></div>
+  <div class="composer">
+    <button class="ic" id="attach" title="Adjuntar imagen" aria-label="Adjuntar imagen">
+      <svg viewBox="0 0 24 24"><path d="M21 12.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l9-9a3.7 3.7 0 015.2 5.2l-9 9a1.8 1.8 0 01-2.6-2.6l8.3-8.3"/></svg>
     </button>
+    <textarea id="input" rows="1" placeholder="Escribe a Sylink"></textarea>
+    <button class="ic" id="mic" title="Hablar" aria-label="Hablar">
+      <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+    </button>
+    <button class="ic" id="send" title="Enviar" aria-label="Enviar">
+      <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+    </button>
+  </div>
+  <input type="file" id="file" accept="image/*" multiple hidden>
+</footer>
 
-    <div class="beta-result" id="betaResult"></div>
-  </section>
-
-</main>
-
-<footer>SYLINK · PERSONAL AI</footer>
-</div>
+<dialog id="cfg">
+  <h2>CONEXIÓN</h2>
+  <label>API KEY (OPENAI)</label>
+  <input id="key" type="password" placeholder="sk-..." autocomplete="off">
+  <label>MODELO</label>
+  <input id="model" value="gpt-4o-mini">
+  <small id="msg">Se guarda solo en este navegador.</small>
+  <div class="row">
+    <button id="cfg-cancel">Cerrar</button>
+    <button class="go" id="cfg-save">Guardar</button>
+  </div>
+</dialog>
 
 <script>
-// =====================================
-// MALLA NEURONAL ANIMADA
-// =====================================
+(() => {
+  const $ = s => document.querySelector(s);
+  const store = {
+    get: k => { try { return localStorage.getItem(k) } catch { return null } },
+    set: (k, v) => { try { localStorage.setItem(k, v) } catch {} }
+  };
 
-const svg = document.getElementById("meshGroup");
-const NS = "http://www.w3.org/2000/svg";
-const nodes = [];
-const lines = [];
-const dots = [];
-
-const CENTER = 175;
-const RADIUS = 150;
-const SPACING = 18;
-
-for (let y=-RADIUS; y<=RADIUS; y+=SPACING) {
-  for (let x=-RADIUS; x<=RADIUS; x+=SPACING) {
-    if (Math.hypot(x,y)<=RADIUS) {
-      nodes.push({
-        x:CENTER+x,
-        y:CENTER+y,
-        ox:CENTER+x,
-        oy:CENTER+y
-      });
-    }
+  /* ---------- ORB ---------- */
+  const cv = $('#orb'), ctx = cv.getContext('2d');
+  let state = 'idle';
+  const N = 150, P = [], E = [];
+  for (let i = 0; i < N; i++) {
+    const y = 1 - 2 * (i + .5) / N, r = Math.sqrt(1 - y * y), th = i * 2.399963;
+    P.push([Math.cos(th) * r, y, Math.sin(th) * r]);
   }
-}
+  for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) {
+    const d = Math.hypot(P[i][0]-P[j][0], P[i][1]-P[j][1], P[i][2]-P[j][2]);
+    if (d < .40) E.push([i, j]);
+  }
+  let W = 0, H = 0, ang = 0, energy = .03, hue = 205, target = 205, nextShift = 8, last = 0;
+  function fit() {
+    const d = devicePixelRatio || 1, r = cv.getBoundingClientRect();
+    W = r.width; H = r.height;
+    cv.width = W * d; cv.height = H * d;
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  new ResizeObserver(fit).observe(cv);
+  const angDiff = (a, b) => ((b - a + 540) % 360) - 180;
+  let frame = 0;
 
-function createSVGElement(name,attrs) {
-  const el=document.createElementNS(NS,name);
-  Object.entries(attrs).forEach(([key,value])=>{
-    el.setAttribute(key,value);
-  });
-  return el;
-}
+  function draw(ts) {
+    const t = ts / 1000, dt = Math.min(.05, t - last); last = t;
+    const eT = { idle: .03, listening: .10, thinking: .06, speaking: .09 }[state];
+    const sp = { idle: .12, listening: .2, thinking: .55, speaking: .25 }[state];
+    energy += (eT - energy) * dt * 3;
+    ang += sp * dt;
+    if (t > nextShift) { target = hue + 50 + Math.random() * 100; nextShift = t + 9 + Math.random() * 7; }
+    hue += angDiff(hue, target) * dt * .5; hue = (hue + 360) % 360;
 
-nodes.forEach((node,i)=>{
-  nodes.forEach((other,j)=>{
-    if(j<=i) return;
-
-    const distance=Math.hypot(
-      node.x-other.x,
-      node.y-other.y
-    );
-
-    if(distance>0 && distance<=SPACING*1.48) {
-      const line=createSVGElement("line",{
-        class:"mesh-line"
-      });
-
-      svg.appendChild(line);
-      lines.push({line,a:i,b:j});
+    ctx.clearRect(0, 0, W, H);
+    const R = Math.min(W, H) * .36, cx = W / 2, cy = H / 2;
+    const ca = Math.cos(ang), sa = Math.sin(ang), cx2 = Math.cos(.35), sx2 = Math.sin(.35);
+    const px = [], py = [], pz = [];
+    for (let i = 0; i < N; i++) {
+      const [x, y, z] = P[i];
+      const d = 1 + energy * Math.sin(t * 3 + i * 1.7) + .02 * Math.sin(t * .8 + i);
+      const x1 = x * ca + z * sa, z1 = -x * sa + z * ca;
+      const y1 = y * cx2 - z1 * sx2, z2 = y * sx2 + z1 * cx2;
+      const f = 2.6 / (2.6 - z2);
+      px[i] = cx + x1 * d * R * f; py[i] = cy + y1 * d * R * f; pz[i] = z2;
     }
-  });
+    ctx.lineWidth = 1;
+    for (const [i, j] of E) {
+      const dep = ((pz[i] + pz[j]) / 2 + 1) / 2;
+      ctx.strokeStyle = `hsla(${hue},50%,70%,${.05 + .38 * dep})`;
+      ctx.beginPath(); ctx.moveTo(px[i], py[i]); ctx.lineTo(px[j], py[j]); ctx.stroke();
+    }
+    for (let i = 0; i < N; i++) {
+      const dep = (pz[i] + 1) / 2;
+      ctx.fillStyle = `hsla(${hue},55%,75%,${.2 + .7 * dep})`;
+      ctx.beginPath(); ctx.arc(px[i], py[i], .8 + 1.4 * dep, 0, 6.283); ctx.fill();
+    }
+    if (++frame % 6 === 0) document.documentElement.style.setProperty('--c', `hsl(${hue},50%,68%)`);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
 
-  const dot=createSVGElement("circle",{
-    class:"mesh-dot",
-    r:1.5
-  });
+  /* ---------- UI helpers ---------- */
+  const col = $('#col'), log = $('#log'), input = $('#input');
+  const scroll = () => log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
+  const LANGS = { js:'JavaScript', javascript:'JavaScript', ts:'TypeScript', typescript:'TypeScript', jsx:'React (JSX)', tsx:'React (TSX)',
+    py:'Python', python:'Python', html:'HTML', css:'CSS', json:'JSON', sql:'SQL', bash:'Bash', sh:'Shell', java:'Java', c:'C', cpp:'C++',
+    cs:'C#', go:'Go', rust:'Rust', rs:'Rust', php:'PHP', rb:'Ruby', ruby:'Ruby', swift:'Swift', kotlin:'Kotlin', yaml:'YAML', yml:'YAML',
+    md:'Markdown', markdown:'Markdown', svg:'SVG (imagen)', xml:'XML', lua:'Lua', dart:'Dart' };
+  const langName = l => LANGS[(l || '').toLowerCase()] || (l ? l.toUpperCase() : 'Texto');
 
-  svg.appendChild(dot);
-  dots.push(dot);
-});
-
-let time=0;
-let sound=0;
-let targetSound=0;
-
-function animate() {
-  time+=.018;
-  sound+=(targetSound-sound)*.12;
-  targetSound*=.94;
-
-  const positions=nodes.map(node=>{
-    const dx=node.ox-CENTER;
-    const dy=node.oy-CENTER;
-    const dist=Math.hypot(dx,dy);
-
-    const wave=
-      Math.sin(dist*.045-time*2.1)*3.5+
-      Math.cos(dx*.035+time)*2.5+
-      Math.sin(dy*.04-time)*2;
-
-    const factor=1+sound*.0008;
-
-    return {
-      x:CENTER+dx*factor+(dx/(dist||1))*wave,
-      y:CENTER+dy*factor+(dy/(dist||1))*wave
+  function inline(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/`([^`\n]+)`/g,'<code class="i">$1</code>')
+      .replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
+  }
+  let cur;
+  function textBlock(txt) {
+    txt.split(/\n{2,}/).map(p => p.trim()).filter(Boolean).forEach(p => {
+      const el = document.createElement('p');
+      el.innerHTML = inline(p).replace(/\n/g, '<br>');
+      cur.appendChild(el);
+    });
+  }
+  function codeBlock(lang, code) {
+    const box = document.createElement('div'); box.className = 'code';
+    const bar = document.createElement('div'); bar.className = 'bar';
+    const l = document.createElement('span'); l.className = 'lang'; l.textContent = langName(lang);
+    const b = document.createElement('button'); b.className = 'copy'; b.textContent = 'Copiar';
+    b.onclick = async () => {
+      try { await navigator.clipboard.writeText(code); }
+      catch { const t = document.createElement('textarea'); t.value = code; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+      b.textContent = 'Copiado'; b.classList.add('ok');
+      setTimeout(() => { b.textContent = 'Copiar'; b.classList.remove('ok'); }, 1500);
     };
-  });
-
-  lines.forEach(item=>{
-    const a=positions[item.a];
-    const b=positions[item.b];
-
-    item.line.setAttribute("x1",a.x);
-    item.line.setAttribute("y1",a.y);
-    item.line.setAttribute("x2",b.x);
-    item.line.setAttribute("y2",b.y);
-  });
-
-  dots.forEach((dot,i)=>{
-    dot.setAttribute("cx",positions[i].x);
-    dot.setAttribute("cy",positions[i].y);
-  });
-
-  document.getElementById("orbGlow").style.opacity=
-    .13+Math.min(sound/180,.18);
-
-  requestAnimationFrame(animate);
-}
-
-animate();
-
-// =====================================
-// ELEMENTOS DEL CHAT
-// =====================================
-
-const input=document.getElementById("userInput");
-const messages=document.getElementById("messages");
-const state=document.getElementById("state");
-
-let voiceEnabled=true;
-let selectedPhoto=null;
-
-function addMessage(text,type) {
-  const div=document.createElement("div");
-  div.className="message "+type;
-  div.textContent=text;
-  messages.appendChild(div);
-  messages.scrollTop=messages.scrollHeight;
-  return div;
-}
-
-// Respuestas demostrativas.
-// Para respuestas inteligentes hace falta integrar un modelo real.
-
-function reply(text) {
-  const t=text.toLowerCase();
-
-  if(t.includes("hola")) {
-    return "¡Hola! Soy Sylink. ¿Qué te gustaría descubrir hoy?";
-  }
-
-  if(t.includes("quién eres") || t.includes("quien eres")) {
-    return "Soy Sylink, una asistente virtual en desarrollo.";
-  }
-
-  if(t.includes("cómo estás") || t.includes("como estas")) {
-    return "¡Estoy lista para conversar contigo!";
-  }
-
-  if(t.includes("gracias")) {
-    return "¡De nada! Me alegra poder ayudarte.";
-  }
-
-  if(t.includes("tu nombre")) {
-    return "Me llamo Sylink.";
-  }
-
-  return "He recibido tu mensaje. Mi motor de inteligencia artificial todavía no está conectado, así que aún no puedo razonar sobre cualquier pregunta.";
-}
-
-// =====================================
-// VOCES MASCULINAS Y FEMENINAS
-// =====================================
-
-const voiceSelect=document.getElementById("voiceSelect");
-let availableVoices=[];
-
-function loadVoices() {
-  if(!window.speechSynthesis) return;
-
-  availableVoices=speechSynthesis.getVoices();
-
-  voiceSelect.innerHTML=
-    '<option value="auto">Voz española predeterminada</option>';
-
-  const spanishVoices=availableVoices.filter(v=>
-    v.lang.toLowerCase().startsWith("es")
-  );
-
-  spanishVoices.forEach((voice,index)=>{
-    const option=document.createElement("option");
-    option.value=String(index);
-    option.textContent=voice.name+" ("+voice.lang+")";
-    voiceSelect.appendChild(option);
-  });
-}
-
-if("speechSynthesis" in window) {
-  loadVoices();
-  speechSynthesis.onvoiceschanged=loadVoices;
-}
-
-function getSelectedVoice() {
-  if(voiceSelect.value==="auto") {
-    return availableVoices.find(v=>
-      v.lang.toLowerCase().startsWith("es")
-    ) || null;
-  }
-
-  const spanishVoices=availableVoices.filter(v=>
-    v.lang.toLowerCase().startsWith("es")
-  );
-
-  return spanishVoices[Number(voiceSelect.value)] || null;
-}
-
-function speak(text) {
-  if(!voiceEnabled || !window.speechSynthesis) return;
-
-  speechSynthesis.cancel();
-
-  const utterance=new SpeechSynthesisUtterance(text);
-  utterance.lang="es-ES";
-  utterance.rate=1;
-  utterance.pitch=1;
-
-  const voice=getSelectedVoice();
-  if(voice) utterance.voice=voice;
-
-  utterance.onstart=()=>{
-    state.textContent="SYLINK ESTÁ HABLANDO";
-    targetSound=40;
-  };
-
-  utterance.onend=()=>{
-    state.textContent="LISTO PARA ESCUCHAR";
-    targetSound=0;
-  };
-
-  speechSynthesis.speak(utterance);
-}
-
-// =====================================
-// ENVIAR MENSAJES
-// =====================================
-
-function sendMessage() {
-  const text=input.value.trim();
-
-  if(!text && !selectedPhoto) {
-    input.focus();
-    return;
-  }
-
-  const userMessage=addMessage(text || "He adjuntado una fotografía.","user");
-
-  if(selectedPhoto) {
-    const image=document.createElement("img");
-    image.src=selectedPhoto;
-    image.alt="Fotografía adjunta";
-    userMessage.appendChild(image);
-  }
-
-  const hadPhoto=!!selectedPhoto;
-
-  input.value="";
-  clearPhoto();
-
-  state.textContent="PROCESANDO";
-
-  setTimeout(()=>{
-    let answer;
-
-    if(hadPhoto) {
-      answer="He recibido tu fotografía. Puedo mostrarla en el chat, pero todavía necesito un modelo de visión para analizar su contenido.";
-    } else {
-      answer=reply(text);
+    bar.append(l, b);
+    const pre = document.createElement('pre'), c = document.createElement('code');
+    c.textContent = code; pre.appendChild(c);
+    box.append(bar, pre);
+    if ((lang || '').toLowerCase() === 'svg') {
+      const pv = document.createElement('div'); pv.className = 'preview';
+      const im = document.createElement('img');
+      im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(code);
+      pv.appendChild(im); box.appendChild(pv);
     }
-
-    addMessage(answer,"ai");
-    state.textContent="LISTO PARA ESCUCHAR";
-    speak(answer);
-    input.focus();
-  },400);
-}
-
-document.getElementById("sendBtn")
-  .addEventListener("click",sendMessage);
-
-input.addEventListener("keydown",event=>{
-  if(event.key==="Enter") {
-    event.preventDefault();
-    sendMessage();
+    cur.appendChild(box);
   }
-});
-
-// =====================================
-// SUBIR FOTOGRAFÍAS
-// =====================================
-
-const photoInput=document.getElementById("photoInput");
-const photoPreview=document.getElementById("photoPreview");
-const previewImage=document.getElementById("previewImage");
-
-document.getElementById("photoBtn").onclick=()=>{
-  photoInput.click();
-};
-
-photoInput.addEventListener("change",()=>{
-  const file=photoInput.files[0];
-
-  if(!file) return;
-
-  if(!file.type.startsWith("image/")) {
-    alert("Selecciona una fotografía válida.");
-    return;
+  function renderAssistant(text) {
+    cur = document.createElement('div'); cur.className = 'msg';
+    const re = /```([\w+-]*)[^\n]*\n([\s\S]*?)```/g; let i = 0, m;
+    while ((m = re.exec(text))) {
+      textBlock(text.slice(i, m.index));
+      codeBlock(m[1], m[2].replace(/\n$/, ''));
+      i = re.lastIndex;
+    }
+    textBlock(text.slice(i));
+    col.appendChild(cur); scroll();
+  }
+  function renderUser(text, imgs) {
+    const el = document.createElement('div'); el.className = 'msg user';
+    if (imgs.length) {
+      const th = document.createElement('div'); th.className = 'thumbs';
+      imgs.forEach(i => { const im = document.createElement('img'); im.src = i.url; th.appendChild(im); });
+      el.appendChild(th);
+    }
+    if (text) { const p = document.createElement('div'); p.textContent = text; el.appendChild(p); }
+    col.appendChild(el); scroll();
   }
 
-  if(file.size>10*1024*1024) {
-    alert("La fotografía debe pesar menos de 10 MB.");
-    photoInput.value="";
-    return;
+  /* ---------- Images ---------- */
+  let pending = [];
+  function drawChips() {
+    const c = $('#chips'); c.innerHTML = '';
+    pending.forEach((p, idx) => {
+      const d = document.createElement('div');
+      d.innerHTML = `<img src="${p.url}"><button aria-label="Quitar">×</button>`;
+      d.querySelector('button').onclick = () => { pending.splice(idx, 1); drawChips(); };
+      c.appendChild(d);
+    });
   }
-
-  const reader=new FileReader();
-
-  reader.onload=event=>{
-    selectedPhoto=event.target.result;
-    previewImage.src=selectedPhoto;
-    photoPreview.style.display="block";
+  function loadImage(file) {
+    return new Promise(res => {
+      const img = new Image(), u = URL.createObjectURL(file);
+      img.onload = () => {
+        const k = Math.min(1, 1568 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = img.width * k; c.height = img.height * k;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        const url = c.toDataURL('image/jpeg', .86);
+        URL.revokeObjectURL(u);
+        res({ url });
+      };
+      img.src = u;
+    });
+  }
+  $('#attach').onclick = () => $('#file').click();
+  $('#file').onchange = async e => {
+    for (const f of e.target.files) if (f.type.startsWith('image/')) pending.push(await loadImage(f));
+    e.target.value = ''; drawChips();
   };
 
-  reader.readAsDataURL(file);
-});
-
-function clearPhoto() {
-  selectedPhoto=null;
-  photoInput.value="";
-  previewImage.src="";
-  photoPreview.style.display="none";
-}
-
-document.getElementById("removePhoto").onclick=clearPhoto;
-
-// =====================================
-// CREACIÓN DE IMÁGENES [BETA]
-// =====================================
-
-document.getElementById("generateImage").onclick=()=>{
-  const prompt=document.getElementById("imagePrompt").value.trim();
-  const result=document.getElementById("betaResult");
-
-  result.style.display="block";
-
-  if(!prompt) {
-    result.textContent="Primero describe la imagen que quieres crear.";
-    return;
+  /* ---------- Voice ---------- */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null, listening = false, viaVoice = false;
+  if (!SR) $('#mic').style.display = 'none';
+  else {
+    rec = new SR(); rec.lang = navigator.language || 'es-ES'; rec.interimResults = true; rec.continuous = false;
+    rec.onresult = e => {
+      let s = ''; for (const r of e.results) s += r[0].transcript;
+      input.value = s; grow();
+      if (e.results[e.results.length - 1].isFinal) { viaVoice = true; send(); }
+    };
+    rec.onend = () => { listening = false; $('#mic').classList.remove('on'); if (state === 'listening') state = 'idle'; };
+    rec.onerror = () => rec.onend();
+  }
+  $('#mic').onclick = () => {
+    if (!rec) return;
+    speechSynthesis.cancel();
+    if (listening) { rec.stop(); return; }
+    try { rec.start(); listening = true; state = 'listening'; $('#mic').classList.add('on'); } catch {}
+  };
+  function speak(text) {
+    const clean = text.replace(/```[\s\S]*?```/g, ' (código en pantalla) ').replace(/[*`#]/g, '');
+    const u = new SpeechSynthesisUtterance(clean); u.lang = rec ? rec.lang : 'es-ES';
+    u.onstart = () => state = 'speaking';
+    u.onend = u.onerror = () => { if (state === 'speaking') state = 'idle'; };
+    speechSynthesis.speak(u);
   }
 
-  result.textContent=
-    "Función [BETA]: la interfaz está preparada, pero todavía no hay un modelo generador de imágenes instalado. No se ha generado ninguna imagen.";
-};
-
-// =====================================
-// MICRÓFONO
-// =====================================
-
-let recognition=null;
-let stream=null;
-let audioContext=null;
-let analyser=null;
-let audioLoop=null;
-
-async function startMic() {
-  const SpeechRecognition=
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
-
-  if(!SpeechRecognition) {
-    addMessage(
-      "El reconocimiento de voz no está disponible en este navegador.",
-      "ai"
-    );
-    return;
-  }
-
-  try {
-    if(navigator.mediaDevices?.getUserMedia) {
-      stream=await navigator.mediaDevices.getUserMedia({
-        audio:true
-      });
-
-      audioContext=new AudioContext();
-      await audioContext.resume();
-
-      analyser=audioContext.createAnalyser();
-      analyser.fftSize=256;
-
-      audioContext.createMediaStreamSource(stream)
-        .connect(analyser);
-
-      const data=new Uint8Array(analyser.frequencyBinCount);
-
-      function readVolume() {
-        if(!analyser) return;
-
-        analyser.getByteFrequencyData(data);
-
-        targetSound=
-          data.reduce((a,b)=>a+b,0)/data.length;
-
-        audioLoop=requestAnimationFrame(readVolume);
+  /* ---------- Config ---------- */
+  const dlg = $('#cfg');
+  let KEY = store.get('sy_oai_key') || '';
+  let MODEL = store.get('sy_oai_model') || 'gpt-4o-mini';
+  $('#key').value = KEY;
+  $('#model').value = MODEL;
+  $('#open-cfg').onclick = () => dlg.showModal();
+  $('#cfg-cancel').onclick = () => dlg.close();
+  $('#cfg-save').onclick = async () => {
+    const k = $('#key').value.trim(), m = $('#model').value.trim() || 'gpt-4o-mini', msg = $('#msg');
+    msg.className = '';
+    if (!k) { msg.className = 'err'; msg.textContent = 'Pega tu API key.'; return; }
+    msg.textContent = 'Verificando...';
+    try {
+      const r = await fetch('https://api.openai.com/v1/models', { headers: { authorization: 'Bearer ' + k } });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(r.status === 401 ? 'Error: API key no válida.' : 'Error: ' + (j.error?.message || r.status));
       }
-
-      readVolume();
+      KEY = k; MODEL = m;
+      store.set('sy_oai_key', k); store.set('sy_oai_model', m);
+      msg.textContent = 'Se guarda solo en este navegador.';
+      dlg.close();
+    } catch (e) {
+      msg.className = 'err';
+      msg.textContent = e.message === 'Failed to fetch' ? 'Error: sin conexión.' : e.message;
     }
+  };
 
-    recognition=new SpeechRecognition();
-    recognition.lang="es-ES";
-    recognition.continuous=false;
-    recognition.interimResults=true;
+  /* ---------- Chat ---------- */
+  const SYSTEM = `Eres Sylink, una IA minimalista. Responde en el idioma del usuario, de forma breve y directa, sin emojis.
+Cuando entregues código, ponlo SIEMPRE en bloques con la etiqueta del lenguaje correcta (\`\`\`python, \`\`\`html, \`\`\`js...).
+Si piden una imagen, ilustración, logo o ícono, genérala como SVG completo y válido (con viewBox) dentro de un bloque \`\`\`svg.
+Si el usuario envía una imagen, analízala con atención.`;
+  const history = []; let busy = false;
 
-    recognition.onstart=()=>{
-      state.textContent="TE ESTOY ESCUCHANDO";
-      document.getElementById("micBtn").classList.add("recording");
-    };
+  async function send() {
+    if (busy) return;
+    const text = input.value.trim();
+    if (!text && !pending.length) return;
+    const key = KEY;
+    if (!key) { dlg.showModal(); viaVoice = false; return; }
+    speechSynthesis.cancel(); if (listening) rec.stop();
 
-    recognition.onresult=event=>{
-      let transcript="";
+    document.body.classList.add('chatting');
+    const imgs = pending; pending = []; drawChips();
+    input.value = ''; grow();
+    renderUser(text, imgs);
 
-      for(let i=0;i<event.results.length;i++) {
-        transcript+=event.results[i][0].transcript;
-      }
+    const content = [{ type: 'text', text: text || 'Describe esta imagen.' }];
+    imgs.forEach(i => content.push({ type: 'image_url', image_url: { url: i.url } }));
+    history.push({ role: 'user', content });
 
-      input.value=transcript;
-
-      const last=event.results[event.results.length-1];
-
-      if(last.isFinal) sendMessage();
-    };
-
-    recognition.onerror=()=>{
-      stopMic();
-      addMessage("No pude reconocer tu voz. Inténtalo otra vez.","ai");
-    };
-
-    recognition.onend=()=>{
-      stopMic();
-    };
-
-    recognition.start();
-
-  } catch(error) {
-    addMessage(
-      "No pude acceder al micrófono. Comprueba los permisos del navegador.",
-      "ai"
-    );
-    stopMic();
-  }
-}
-
-function stopMic() {
-  if(recognition) {
-    const old=recognition;
-    recognition=null;
+    busy = true; state = 'thinking';
+    const wait = document.createElement('div'); wait.className = 'msg';
+    wait.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>';
+    col.appendChild(wait); scroll();
 
     try {
-      old.stop();
-    } catch(e) {}
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + key },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [{ role: 'system', content: SYSTEM }, ...history]
+        })
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error?.message || r.status);
+      const out = j.choices[0].message.content || '';
+      history.push({ role: 'assistant', content: out });
+      wait.remove(); renderAssistant(out);
+      state = 'idle';
+      if (viaVoice) speak(out);
+    } catch (err) {
+      history.pop(); wait.remove();
+      renderAssistant('No pude conectar: ' + err.message);
+      state = 'idle';
+    }
+    viaVoice = false; busy = false;
   }
 
-  if(audioLoop) {
-    cancelAnimationFrame(audioLoop);
-    audioLoop=null;
-  }
-
-  if(stream) {
-    stream.getTracks().forEach(track=>track.stop());
-    stream=null;
-  }
-
-  if(audioContext) {
-    audioContext.close();
-    audioContext=null;
-  }
-
-  analyser=null;
-  targetSound=0;
-
-  document.getElementById("micBtn")
-    .classList.remove("recording");
-
-  state.textContent="LISTO PARA ESCUCHAR";
-}
-
-document.getElementById("micBtn").onclick=()=>{
-  if(recognition) stopMic();
-  else startMic();
-};
-
-// =====================================
-// CONTROLES DE VOZ
-// =====================================
-
-document.getElementById("stopBtn").onclick=()=>{
-  stopMic();
-
-  if(window.speechSynthesis) {
-    speechSynthesis.cancel();
-  }
-
-  state.textContent="VOZ DETENIDA";
-};
-
-document.getElementById("voiceBtn").onclick=()=>{
-  voiceEnabled=!voiceEnabled;
-
-  const button=document.getElementById("voiceBtn");
-
-  button.textContent=voiceEnabled
-    ? "🔊 Voz activada"
-    : "🔇 Voz desactivada";
-
-  button.classList.toggle("active",voiceEnabled);
-
-  if(!voiceEnabled && window.speechSynthesis) {
-    speechSynthesis.cancel();
-  }
-};
-
-// =====================================
-// INICIO
-// =====================================
-
-input.addEventListener("input",()=>{
-  input.style.color="#ffffff";
-});
-
+  function grow() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 140) + 'px'; }
+  input.addEventListener('input', grow);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+  $('#send').onclick = send;
+})();
 </script>
 </body>
 </html>
